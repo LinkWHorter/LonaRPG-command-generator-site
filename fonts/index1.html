@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="lyco-logotypic.png" type="image/x-icon">
+    <title>Раскраска Рисунка</title>
+    <!-- Подключение библиотеки html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: gray;
+            flex-direction: column;
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* Internet Explorer/Edge */
+            user-select: none;         /* Современные браузеры */
+            font-family: Verdana;
+            margin: 16px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 95%;
+        }
+        .colors {
+            display: flex;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 80%;
+            z-index: 2; /* Установлен z-index */
+        }
+        .color {
+            width: 30px;
+            height: 30px;
+            margin: 5px;
+            border-radius: 4px;
+            border: 1px solid #000;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            box-shadow:
+              0px 0px 8px #15151555,
+              0px 0px 8px #15151555,
+              0px 0px 8px #15151555;
+            justify-content: center;
+            font-size: 12px;
+            text-shadow: 
+            -1px -1px 1px #151515,  
+             1px -1px 1px #151515,
+            -1px  1px 1px #151515,
+             1px  1px 1px #151515; 
+            color: #ccc;
+        }
+        .drawing {
+            transition: all 0.3s;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 25px);
+            grid-auto-rows: 25px;
+            border: 3px solid #2d2d2d;
+            border-radius: 8px;
+            gap: 0;
+            margin-bottom: 20px;
+            overflow: visible;
+            transition: transform 0.2s ease-in-out;
+        }
+        .cell {
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+        }
+        .cell:hover {
+            opacity: 0.8325;
+            background-color: #f0f0f0;
+        }
+        .controls {
+            width: 192px;
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+        .control-button {
+            padding: 5px 10px;
+            cursor: pointer;
+            border: 1px solid #000;
+            background-color: #ccc;
+            z-index: 2; /* Установлен z-index */
+        }
+        .input-field {
+            margin-bottom: 10px;
+            background-color: #454545;
+            color: whitesmoke;
+            padding: 4px;
+            border-radius: 4px;
+            border: 1.5px solid darkgray;
+            width: 32px;
+            gap: 8px;
+            z-index: 2;
+        }
+        #inputField {
+            z-index: 2;
+            background-color: #454545;
+            color: whitesmoke;
+            padding: 4px;
+            border: 1.5px solid darkgray;
+            border-radius: 4px;
+            user-select: text;
+        }
+        #modeLabel {
+            margin-top: 10px;
+            font-size: 16px;
+            z-index: 2;
+            text-shadow: 
+                -1px -1px 1px #151515,  
+                1px -1px 1px #151515,
+                -1px  1px 1px #151515,
+                1px  1px 1px #151515;
+            color: whitesmoke;
+            text-shadow: #454545;
+            font-weight: bold;
+        }
+        .zoom-controls {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            width: 20%;
+            margin-bottom: 15px;
+            z-index: 2; /* Установлен z-index */
+        }
+        .control-button {
+            width: 12px;
+            height: 21px;
+            border-radius: 5px;
+            text-align: center;
+            background-color: darkgray;
+            color: #151515;
+        }
+        .current-colour, .used-colours, .colours-tagging {
+            margin: 0 auto;
+            text-align: center;
+            color: white;
+            padding-bottom: 12px;
+            text-shadow: 
+                -1px -1px 1px #151515,  
+                1px -1px 1px #151515,
+                -1px  1px 1px #151515,
+                1px  1px 1px #151515;
+            z-index: 2;
+            font-weight: bold;
+        }
+        .colours-tagging {
+            opacity: 0.35;
+            text-shadow: 
+                -1px -1px 1px #151515,  
+                1px -1px 1px #151515,
+                -1px  1px 1px #151515,
+                1px  1px 1px #151515;
+        }
+        .color-display {
+            box-shadow:
+                0px 0px 8px #15151555,
+                0px 0px 8px #15151555,
+                0px 0px 8px #15151555;
+            margin-top: -2.5px;
+            padding: 15.75px;
+            transition: background-color 1.17031s;
+            border: 3.5px solid #303030; /* Рамка блока */
+            border-radius: 18px;
+            background-color: transparent; /* Изначально прозрачный фон */
+            display: inline-block; /* Блок отображается на одной линии с другими элементами */
+        }
+        .used-numbers {
+            transition: all 0.315s;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 0 auto;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            gap: 10px;
+            z-index: 2;
+            width: 80%;
+        }
+        .used-number {
+            transition: all 0.15s;
+            width: 30px;
+            height: 30px;
+            gap: 10px;
+            box-shadow:
+                0px 0px 8px #15151555,
+                0px 0px 8px #15151555,
+                0px 0px 8px #15151555;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #ccc;
+            text-shadow: 
+                -1px -1px 1px #151515,  
+                1px -1px 1px #151515,
+                -1px  1px 1px #151515,
+                1px  1px 1px #151515;
+        }
+        /* Стиль для pop-up блока */
+        .popup {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 10px;
+            z-index: 10;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .popup .shade {
+            width: 30px;
+            height: 30px;
+            margin: 5px;
+            border-radius: 4px;
+            border: 1px solid #000;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            text-shadow: -1px -1px 1px #151515, 1px -1px 1px #151515, -1px 1px 1px #151515, 1px 1px 1px #151515;
+            color: #ccc;
+        }
+        #bottomPanel {
+            transition: all 0.3s;
+            padding-top: 10px;
+            margin: 0 auto;
+            justify-content: center;
+            width: 250px;
+        }
+        .disabled {
+            opacity: 0.7;
+            pointer-events: none; /* Отключает все взаимодействия с элементом */
+        }
+        .hidden {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="colors" id="colorPalette">
+        <!-- Цвета будут добавлены здесь -->
+    </div>
+    <div class="current-colour">Выбранный цвет:</div>
+    <div class="zoom-controls">
+        <div class="control-button" id="zoomInButton">+</div>
+        <div id="colorDisplay" class="color-display"></div>
+        <div class="control-button" id="zoomOutButton">-</div>
+    </div>
+    <div class="drawing" id="drawing">
+        <!-- Ячейки рисунка будут добавлены здесь -->
+    </div>
+    <div class="controls">
+        <input type="number" id="nField" class="input-field" placeholder="n" min="0" value="0">
+        <input type="number" id="pField" class="input-field" placeholder="p" min="0" value="0">
+    </div>
+    <input type="text" id="inputField" placeholder="{n,p;_,_,_}" style="width: 220px;">
+    <div id="modeLabel">Режим Раскраски</div>
+    <div class="controls">
+        <div class="control-button" id="copyButton">С</div>
+        <div class="control-button" id="pasteButton">P</div>
+        <div class="control-button" id="downloadImage">S</div>
+        <div class="control-button" id="toggleModeButton">E</div>
+    </div>
+    <div class="hidden" id="bottomPanel">
+        <div class="used-colours">Использованные цвета: </div>
+        <div class="used-numbers" id="usedNumbers">
+            <!-- Числа будут добавлены здесь -->
+        </div>
+        <div class="colours-tagging">(нажмите выбранным цветом, чтобы залить)</div>
+    </div>
+</div>
+<div class="popup" id="colorPopup"></div>
+
+<script>
+    const colors = [
+        '#FF0000', '#FF6347', '#FFA300', '#FFD700', '#FFFF00', '#A2D89A',
+        '#00FF00', '#008000', '#00FFFF', '#00BFFF', '#007FFF', '#0000FF', 
+        '#4B0082', '#800080', '#7B3F00', '#FF1493', '#FF00FF', '#EE82EE',
+        '#FFC0CB', '#F5F5DC', '#9B9B8E', '#404040', '#202020'
+    ];
+    const shades = {
+        1: ['#FFCCCC', '#FF9999', '#FF6666', '#FF3333', '#FF0000', '#CC0000', '#990000'], // Shades for '#FF0000'
+        2: ['#FF9B8E', '#FF7F6D', '#FF5F4A', '#FF3F28', '#FF1A05', '#E60000', '#CC0000'], // Shades for '#FF6347'
+        3: ['#FFCC80', '#FFB74D', '#FFA726', '#FF9800', '#FB8C00', '#F57C00', '#EF6C00'], // Shades for '#FFA300'
+        4: ['#FFF8E1', '#FFE135', '#F7E300', '#F5C300', '#E6B800', '#D4A400', '#B89800'], // Shades for '#FFD700'
+        5: ['#FFFFE0', '#FFFFB3', '#FFFF80', '#FFFF4D', '#FFFF1A', '#E6E600', '#CCCC00'], // Shades for '#FFFF00'
+        6: ['#C4D6A2', '#A2C875', '#80BC4C', '#5DAA23', '#3B8C00', '#2E7D32', '#1B5E20'], // Shades for '#A2D89A'
+        7: ['#00FFCC', '#00E6B3', '#00CC99', '#00B380', '#00A366', '#008C8C', '#00796B'], // Shades for '#00FF00'
+        8: ['#004D00', '#006600', '#007A00', '#008800', '#009900', '#007A00', '#005600'], // Shades for '#008000'
+        9: ['#B3FFFF', '#99FFFF', '#80FFFF', '#66FFFF', '#00FFFF', '#00B3B3', '#009999'], // Shades for '#00FFFF'
+        10: ['#66D9FF', '#4DD0FF', '#33B5FF', '#1E88E5', '#1976D2', '#0D47A1', '#004D40'], // Shades for '#00BFFF'
+        11: ['#004D9F', '#0074D9', '#0099FF', '#00A4FF', '#00BFFF', '#1976D2', '#0D47A1'], // Shades for '#007FFF'
+        12: ['#8A2BE2', '#7A1C9B', '#6A0076', '#5C0063', '#4D0050', '#3D003C', '#2C002A'], // Shades for '#0000FF'
+        13: ['#8A2BE2', '#7A1C9B', '#6A0076', '#5C0063', '#4D0050', '#3D003C', '#2C002A'], // Shades for '#4B0082'
+        14: ['#D1A1D8', '#B86BCC', '#A75DBF', '#9A4DAE', '#8B1F8D', '#6D1F73', '#4B0044'], // Shades for '#800080'
+        15: ['#B68D00', '#A87300', '#9B6200', '#8B4D00', '#7B3900', '#6A2C00', '#5A1F00'], // Shades for '#7B3F00'
+        16: ['#FF6F8D', '#FF5070', '#FF388F', '#FF1D6F', '#FF004F', '#E6004F', '#CC0033'], // Shades for '#FF1493'
+        17: ['#FF66FF', '#FF4DFF', '#FF33FF', '#FF1AFF', '#FF00FF', '#E600E6', '#CC00CC'], // Shades for '#FF00FF'
+        18: ['#D0B3D9', '#C080C8', '#B24AB5', '#9E0092', '#D700FF', '#AA00AA', '#9B009B'], // Shades for '#EE82EE'
+        19: ['#F4B8C2', '#F0A0B2', '#E883A1', '#E56B8F', '#E02E6A', '#D81B60', '#C2185B'], // Shades for '#FFC0CB'
+        20: ['#F5F5E3', '#E8E8B5', '#DCD9A8', '#D0D086', '#B9B65D', '#A5A53F', '#8D8D1F'], // Shades for '#F5F5DC'
+        21: ['#D0D0C9', '#B7B7A9', '#9E9E8D', '#8F8F72', '#6B6B58', '#5A5A40', '#4C4C32'], // Shades for '#9B9B8E'
+        22: ['#595959', '#4D4D4D', '#404040', '#333333', '#1F1F1F', '#161616', '#0F0F0F'], // Shades for '#404040'
+        23: ['#2C2C2C', '#262626', '#1F1F1F', '#191919', '#141414', '#0D0D0D', '#060606']  // Shades for '#202020'
+    };
+
+    const colorDisplay = document.getElementById('colorDisplay');
+
+    let selectedColorIndex = null;
+    let selectedShadeIndex = null;
+    let currentColorIndex = null;
+    let drawingData = [];
+    let mouseDown = false;
+    let isDrawingMode = false;
+    let zoomLevel = 1;
+    let isRightMouseDown = false;
+    hideColorPopup();
+
+    function showColorPopup(x, y, colorIndex) {
+        const popup = document.getElementById('colorPopup');
+        popup.innerHTML = '';
+        const colorShades = shades[colorIndex] || [];
+
+        colorShades.forEach((shade, index) => {
+        const shadeDiv = document.createElement('div');
+        shadeDiv.className = 'shade';
+        shadeDiv.style.backgroundColor = shade;
+        const shadeKey = colorIndex + '.' + index; // Создаем ключ для shade
+        shadeDiv.dataset.shadeKey = shadeKey; // Устанавливаем ключ в dataset
+        shadeDiv.textContent = shadeKey;
+        shadeDiv.addEventListener('click', () => {
+            selectedColorIndex = colorIndex; // Обновляем выбранный цвет
+            selectedShadeIndex = shadeKey; // Обновляем выбранный оттенок
+            console.log(`Выбран оттенок: ${selectedShadeIndex}`);
+
+            const shadeColor = shades[selectedColorIndex]?.[index]; // Получаем цвет по ключу
+            if (shadeColor) {
+                colorDisplay.style.backgroundColor = shadeColor; // Обновляем цвет
+            } else {
+                console.error(`Цвет для ключа ${selectedShadeIndex} не найден.`);
+            }
+            hideColorPopup(); // Скрываем всплывающее окно
+        });
+        popup.appendChild(shadeDiv);
+    });
+        popup.style.left = `${x}px`;
+        popup.style.top = `${y}px`;
+        popup.style.display = 'block';
+    }
+
+    function hideColorPopup() {
+        const popup = document.getElementById('colorPopup');
+        popup.style.display = 'none';
+    }
+
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('.shade') && !event.target.closest('.popup')) {
+            hideColorPopup();
+        }
+    });
+
+    // Функция для обновления всех ячеек с определенным цветом
+    function updateColorForAllCells(oldColorNumber, newColorIndex) {
+        drawingData.forEach((row, rowIndex) => {
+            row.forEach((cell, colIndex) => {
+                const cellString = String(cell);
+                if (cellString === oldColorNumber || cellString === 'F' + oldColorNumber) {
+                    const fillValue = newColorIndex;
+                    //const filledValue = 'F' + newColorIndex;
+                    drawingData[rowIndex][colIndex] = fillValue;
+                    const cellDiv = document.querySelector(`[data-row="${rowIndex}"][data-col="${colIndex}"]`);
+                    if (cellDiv) {
+                        cellDiv.style.backgroundColor = colors[newColorIndex - 1];
+                        cellDiv.style.color = colors[newColorIndex - 1];
+                        cellDiv.textContent = fillValue;
+                    }
+                }
+            });
+        });
+        createUsedNumbers(); // Обновляем список использованных чисел
+        updateInputField(); // Обновляем строку ввода
+    }
+    
+    // Добавляем обработчик кликов для всех ячеек
+    document.querySelectorAll('.cell').forEach(cell => {
+        cell.addEventListener('click', handleCellClick);
+    });
+    document.getElementById('downloadImage').addEventListener('click', downloadTableImage);
+
+    function downloadTableImage() {
+    const drawing = document.getElementById('drawing');
+    const cellas = document.querySelectorAll('.cell');
+
+    // Изменяем стили ячеек
+    cellas.forEach(cell => {
+        cell.style.border = '0';
+        cell.style.borderRadius = '0';
+    });
+
+    drawing.style.border = '0';
+    drawing.style.borderRadius = '0';
+    
+    // Используем html2canvas для создания изображения
+    html2canvas(drawing, {
+        scale: 15, // Увеличиваем разрешение в 15 раз
+        onrendered: function(canvas) {
+            canvas.toBlob(function(blob) {
+                // Создаем ссылку на Blob
+                const url = window.URL.createObjectURL(blob);
+
+                // Создаем ссылку для скачивания
+                const link = document.createElement('a');
+                link.download = 'rysunock.png';
+                link.href = url;
+
+                // Добавляем ссылку на страницу и эмулируем клик
+                document.body.appendChild(link);
+                link.click();
+
+                // Удаляем ссылку из DOM
+                document.body.removeChild(link);
+
+                // Освобождаем ресурсы Blob
+                window.URL.revokeObjectURL(url);
+
+                drawing.style.border = '3px solid #2d2d2d';
+                drawing.style.borderRadius = '8px';
+
+                cellas.forEach(cell => {
+                    cell.style.border = '1px solid #ccc';
+                    cell.style.borderRadius = '4px';
+                });
+            });
+        }
+    });
+}
+
+    // Обработчик клика по элементу .used-number
+    document.querySelectorAll('.used-number').forEach(element => {
+        element.addEventListener('click', () => {
+            if (currentColorIndex !== null) {
+                const oldColorIndex = parseInt(element.textContent, 10);
+                if (oldColorIndex !== currentColorIndex) {
+                    updateCellsWithColor(oldColorIndex, currentColorIndex);
+                }
+            }
+        });
+    });
+
+    // Функция для установки выбранного цвета
+    function setColorIndex(index) {
+        currentColorIndex = index;
+    }
+
+    // Пример функции для установки цвета при клике на кнопку выбора цвета
+    document.querySelectorAll('.color-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const colorIndex = parseInt(button.dataset.colorIndex, 10);
+            setColorIndex(colorIndex);
+        });
+    });
+
+    function createColorPalette() {
+        const colorPalette = document.getElementById('colorPalette');
+        colors.forEach((color, index) => {
+            const colorDiv = document.createElement('div');
+            colorDiv.className = 'color';
+            colorDiv.style.backgroundColor = color;
+            colorDiv.dataset.colorIndex = index + 1;
+            colorDiv.textContent = index + 1;
+            colorDiv.addEventListener('click', () => {
+                selectedColorIndex = index + 1;
+                if (selectedColorIndex) {
+                    colorDisplay.style.backgroundColor = colors[selectedColorIndex - 1];
+                }
+                console.log(`Выбран цвет: ${color} с номером ${selectedColorIndex}`);
+            });
+            colorDiv.addEventListener('contextmenu', (event) => {
+                    event.preventDefault();
+                    showColorPopup(event.pageX, event.pageY, index + 1);
+                });
+            colorPalette.appendChild(colorDiv);
+        });
+    }
+
+    function clearCell(cellDiv, rowIndex, colIndex) {
+        cellDiv.style.backgroundColor = 'transparent';
+        cellDiv.style.color = '#000'; // Цвет текста по умолчанию
+        cellDiv.textContent = '';
+        cellDiv.dataset.cellIndex = '_';
+        drawingData[rowIndex][colIndex] = '_'; // Обновляем данные рисунка
+        createDrawing();
+        createUsedNumbers(); // Пересоздаем список использованных чисел
+    }
+
+    function handleCellClick(cellDiv, rowIndex, colIndex) {
+        if (selectedColorIndex !== null && selectedShadeIndex !== null) {
+            console.log('Нет');
+            if (isDrawingMode) {
+                cellDiv.style.backgroundColor = colorDisplay.style.backgroundColor;
+                cellDiv.style.color = colorDisplay.style.backgroundColor;
+                console.log(cellDiv.style.backgroundColor);
+                console.log(colorDisplay.style.backgroundColor);
+                cellDiv.textContent = selectedColorIndex;
+                cellDiv.dataset.cellIndex = selectedColorIndex;
+                drawingData[rowIndex][colIndex] = selectedColorIndex;
+                createUsedNumbers();
+            } else if (cellDiv.dataset.cellIndex == selectedColorIndex) {
+                const fillValue = 'F' + selectedColorIndex;
+                cellDiv.style.backgroundColor = colorDisplay.style.backgroundColor;
+                cellDiv.style.color = colorDisplay.style.backgroundColor;
+                cellDiv.textContent = fillValue;
+                cellDiv.dataset.cellIndex = fillValue;
+                drawingData[rowIndex][colIndex] = fillValue;
+                updateInputField(); // Обновляем строку ввода после закраски
+                createUsedNumbers();
+            }
+        }
+        else if (selectedColorIndex !== null) {
+            console.log('Да');
+            if (isDrawingMode) {
+                cellDiv.style.backgroundColor = colors[selectedColorIndex - 1];
+                cellDiv.style.color = colors[selectedColorIndex - 1];
+                cellDiv.textContent = selectedColorIndex;
+                cellDiv.dataset.cellIndex = selectedColorIndex;
+                drawingData[rowIndex][colIndex] = selectedColorIndex;
+                createUsedNumbers();
+            } else if (cellDiv.dataset.cellIndex == selectedColorIndex) {
+                const fillValue = 'F' + selectedColorIndex;
+                cellDiv.style.backgroundColor = colors[selectedColorIndex - 1];
+                cellDiv.style.color = colors[selectedColorIndex - 1];
+                cellDiv.textContent = fillValue;
+                cellDiv.dataset.cellIndex = fillValue;
+                drawingData[rowIndex][colIndex] = fillValue;
+                updateInputField(); // Обновляем строку ввода после закраски
+                createUsedNumbers();
+            }
+        }
+    }
+
+    function setupCellEventListeners(cellDiv, rowIndex, colIndex) {
+        cellDiv.addEventListener('click', () => handleCellClick(cellDiv, rowIndex, colIndex));
+
+        cellDiv.addEventListener('mousedown', (event) => {
+            if (isDrawingMode) {
+                handleDrawing(cellDiv, rowIndex, colIndex);
+            }
+        });
+
+        cellDiv.addEventListener('mouseover', (event) => {
+            if (isDrawingMode && mouseDown) {
+                handleDrawing(cellDiv, rowIndex, colIndex);
+            }
+        });
+
+        cellDiv.addEventListener('contextmenu', (event) => {
+            if (isDrawingMode) {
+                event.preventDefault(); // Предотвращаем контекстное меню браузера
+                isRightMouseDown = false;
+                clearCell(cellDiv, rowIndex, colIndex);
+            }
+        });
+
+        cellDiv.addEventListener('touchstart', (event) => {
+            if (isDrawingMode) {
+                handleDrawing(cellDiv, rowIndex, colIndex);
+            }
+        });
+    }
+
+    function createDrawing() {
+        const drawing = document.getElementById('drawing');
+        drawing.innerHTML = ''; // Очистка текущего рисунка
+        drawing.style.gridTemplateColumns = `repeat(${drawingData[0]?.length || 0}, 25px)`; // Установление количества столбцов
+        drawing.style.transform = `scale(${zoomLevel})`; // Применение масштаба
+        drawingData.forEach((row, rowIndex) => {
+            row.forEach((cell, colIndex) => {
+                const cellDiv = document.createElement('div');
+                cellDiv.className = 'cell';
+                cellDiv.dataset.row = rowIndex;
+                cellDiv.dataset.col = colIndex;
+                if (cell !== '_') {
+                    if (isDrawingMode) {
+                        if (String(cell).startsWith('F')) {
+                            // Обработка ячейки с состоянием закрашенности
+                            const number = parseInt(cell.substring(1), 10);
+                            cellDiv.style.backgroundColor = colors[number - 1];
+                            cellDiv.style.color = colors[number - 1]; // Цвет текста для закрашенной ячейки
+                            cellDiv.textContent = number;
+                        }
+                        else {
+                            cellDiv.style.backgroundColor = colors[cell - 1];
+                            cellDiv.style.color = colors[cell - 1]; // Цвет текста как цвет фона в режиме рисования
+                            cellDiv.textContent = cell;
+                        }
+                    } else {
+                        if (String(cell).startsWith('F')) {
+                            // Обработка ячейки с состоянием закрашенности
+                            const number = parseInt(cell.substring(1), 10);
+                            cellDiv.style.backgroundColor = colors[number - 1];
+                            cellDiv.style.color = colors[number - 1]; // Цвет текста для закрашенной ячейки
+                            cellDiv.textContent = number;
+                        }
+                        else {
+                            cellDiv.style.backgroundColor = 'transparent';
+                            cellDiv.style.color = '#000'; // Чёрный цвет текста в режиме раскраски
+                        }
+                    }
+                    cellDiv.textContent = cell;
+                    cellDiv.dataset.cellIndex = cell;
+                }
+            cellDiv.addEventListener('click', () => {
+                    if (isRightMouseDown == false && selectedColorIndex) {
+                        if (isDrawingMode) {
+                            cellDiv.style.backgroundColor = colors[selectedColorIndex - 1];
+                            cellDiv.style.color = colors[selectedColorIndex - 1];
+                            cellDiv.textContent = selectedColorIndex;
+                            cellDiv.dataset.cellIndex = selectedColorIndex;
+                            drawingData[rowIndex][colIndex] = selectedColorIndex;
+                            createUsedNumbers();
+                        } else if (cellDiv.dataset.cellIndex == selectedColorIndex) {
+                            const fillValue = 'F' + selectedColorIndex;
+                            cellDiv.style.backgroundColor = colors[selectedColorIndex - 1];
+                            cellDiv.style.color = colors[selectedColorIndex - 1];
+                            cellDiv.textContent = fillValue;
+                            cellDiv.dataset.cellIndex = fillValue;
+                            drawingData[rowIndex][colIndex] = fillValue;
+                            updateInputField(); // Обновляем строку ввода после закраски
+                            createUsedNumbers();
+                        }
+                    }
+                });
+
+            cellDiv.addEventListener('mousedown', (event) => {
+                if (isRightMouseDown == false && isDrawingMode) {
+                    handleDrawing(cellDiv, rowIndex, colIndex);
+                }
+            });
+            cellDiv.addEventListener('mouseover', (event) => {
+                if (isRightMouseDown == false && isDrawingMode && mouseDown) {
+                    handleDrawing(cellDiv, rowIndex, colIndex);
+                }
+            });
+            setupCellEventListeners(cellDiv, rowIndex, colIndex); // Устанавливаем обработчики событий
+            drawing.appendChild(cellDiv);
+        });
+        createUsedNumbers();
+    });
+
+    // Обработчики для начала и окончания рисования
+    drawing.addEventListener('mousedown', (event) => {
+        mouseDown = true;
+    });
+
+    drawing.addEventListener('mouseup', () => {
+        isRightMouseDown = false;
+        mouseDown = false;
+    });
+
+    function handleDrawing(cellDiv, rowIndex, colIndex) {
+    if (isRightMouseDown == false) {
+        let colorToUse = null;
+        let cellValue = null;
+
+        // Проверка наличия выбранного цвета и оттенка
+        if (selectedShadeIndex !== null && selectedColorIndex !== null) {
+            // Обратите внимание, что мы ожидаем, что selectedShadeIndex - это индекс в массиве shades
+            colorToUse = colorDisplay.style.backgroundColor;
+            cellValue = selectedShadeIndex; // Используем индекс оттенка
+        } 
+        // Если выбран только основной цвет
+        else if (selectedColorIndex !== null) {
+            colorToUse = colors[selectedColorIndex - 1];
+            cellValue = selectedColorIndex;
+        } 
+        
+        // Устанавливаем цвет и текст ячейки
+        cellDiv.style.backgroundColor = colorToUse;
+        cellDiv.style.color = colorToUse;
+        cellDiv.textContent = cellValue;
+        cellDiv.dataset.cellIndex = cellValue;
+        drawingData[rowIndex][colIndex] = cellValue;
+        createUsedNumbers();
+    }
+}
+    }
+
+    function createUsedNumbers() {
+        const usedNumbersContainer = document.getElementById('usedNumbers');
+        usedNumbersContainer.innerHTML = ''; // Очистка текущих чисел
+        const uniqueNumbers = new Set();
+        drawingData.forEach(row => {
+            row.forEach(cell => {
+                const cellString = String(cell); // Преобразование в строку
+                if (cellString !== '_') {
+                    if (cellString.startsWith('F')) {
+                        uniqueNumbers.add(cellString.substring(1));
+                    } else {
+                        uniqueNumbers.add(cellString);
+                    }
+                }
+            });
+        });
+
+        // Преобразование множества в массив и сортировка чисел
+        const sortedNumbers = Array.from(uniqueNumbers).sort((a, b) => a - b);
+        sortedNumbers.forEach(number => {
+            const numberDiv = document.createElement('div');
+            numberDiv.className = 'used-number';
+            numberDiv.textContent = number;
+            if (selectedColorIndex !== null) {
+                numberDiv.style.backgroundColor = colors[number - 1];
+            }
+            numberDiv.dataset.number = number; // Добавляем data-атрибут для хранения номера цвета
+            numberDiv.addEventListener('click', () => {
+                // Обработка клика на .used-number
+                if (selectedColorIndex) {
+                    updateColorForAllCells(number, selectedColorIndex);
+                }
+            });
+            usedNumbersContainer.appendChild(numberDiv);
+        });
+    }
+
+    function toggleBottomPanel(isDrawingMode) {
+    const bottomPanel = document.getElementById('bottomPanel');
+    if (isDrawingMode) {
+        bottomPanel.classList.remove('hidden');
+    } else {
+        bottomPanel.classList.add('hidden');
+    }
+    }
+
+    function toggleMode() {
+        isDrawingMode = !isDrawingMode;
+        const modeLabel = document.getElementById('modeLabel');
+        if (isDrawingMode) {
+            modeLabel.textContent = 'Режим Рисования';
+            createUsedNumbers();
+        } else {
+            modeLabel.textContent = 'Режим Раскраски';
+            updateInputField(); // Обновляем строку ввода при переходе в режим раскраски
+        }
+        toggleBottomPanel(isDrawingMode);
+        createDrawing(); // Пересоздаем таблицу при смене режима
+    }
+
+    function updateDrawingDataFromInput(input) {
+        const pattern = /{(\d+),(\d+);([^}]*)}/;
+        const match = input.match(pattern);
+        if (match) {
+            const n = parseInt(match[2], 10);
+            const p = parseInt(match[1], 10);
+            const entries = match[3].split(',');
+            drawingData = new Array(n).fill(null).map(() => new Array(p).fill('_'));
+            entries.forEach((entry, index) => {
+                const rowIndex = Math.floor(index / p);
+                const colIndex = index % p;
+                if (entry !== '_') {
+                    drawingData[rowIndex][colIndex] = entry;
+                }
+            });
+            createDrawing();
+            createUsedNumbers();
+            
+            // Update nField and pField values
+            document.getElementById('nField').value = p;
+            document.getElementById('pField').value = n;
+        } else {
+            alert('Неправильный формат ввода. Используйте формат {n,p;_,_,_}');
+        }
+    }
+
+    function updateTableSize() {
+        const nField = document.getElementById('nField');
+        const pField = document.getElementById('pField');
+        const n = parseInt(pField.value, 10) || 0; // Поменяли местами n и p
+        const p = parseInt(nField.value, 10) || 0; // Поменяли местами n и p
+        drawingData = new Array(n).fill(null).map(() => new Array(p).fill('_'));
+        createDrawing();
+        createUsedNumbers();
+        updateInputField();
+    }
+
+    function updateInputField() {
+        const inputField = document.getElementById('inputField');
+        let inputString = `{${drawingData[0]?.length || 0},${drawingData.length};`;
+        drawingData.forEach(row => {
+            row.forEach(cell => {
+                if (cell === '_') {
+                    inputString += '_,';
+                } else {
+                    inputString += `${cell},`;
+                }
+            });
+        });
+        inputString = inputString.replace(/,$/, ''); // Удаляем лишнюю запятую в конце
+        inputString += '}';
+        inputField.value = inputString;
+    }
+
+    function handleZoom(zoomIn) {
+        if (zoomIn) {
+            zoomLevel += 0.1; // Увеличиваем масштаб
+        } else {
+            zoomLevel -= 0.1; // Уменьшаем масштаб
+        }
+        createDrawing();
+    }
+
+    document.getElementById('zoomInButton').addEventListener('click', () => handleZoom(true));
+    document.getElementById('zoomOutButton').addEventListener('click', () => handleZoom(false));
+    document.getElementById('copyButton').addEventListener('click', () => {
+        const inputField = document.getElementById('inputField');
+        inputField.select();
+        document.execCommand('copy');
+    });
+
+    document.getElementById('pasteButton').addEventListener('click', async () => {
+        try {
+            const clipboardText = await navigator.clipboard.readText();
+            if (clipboardText) {
+                const inputField = document.getElementById('inputField');
+                inputField.value = clipboardText;
+                updateDrawingDataFromInput(clipboardText);
+            }
+        } catch (err) {
+            console.error('Не удалось получить данные из буфера обмена: ', err);
+        }
+    });
+
+    document.getElementById('toggleModeButton').addEventListener('click', toggleMode);
+
+    document.getElementById('inputField').addEventListener('blur', (event) => {
+        updateDrawingDataFromInput(event.target.value);
+    });
+
+    document.getElementById('nField').addEventListener('blur', updateTableSize);
+    document.getElementById('pField').addEventListener('blur', updateTableSize);
+
+    createColorPalette();
+    createDrawing();
+</script>
+
+</body>
+</html>

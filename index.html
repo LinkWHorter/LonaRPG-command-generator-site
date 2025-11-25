@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="images/lonarpg.png" type="image/png">
+    <title>LonaRPG Command Generator</title>
+    <style>
+        @font-face {
+            font-family: 'Pixy';
+            src: url('fonts/PIXY.woff') format('woff'),
+                 url('fonts/PIXY.woff2') format('woff2'),
+                 url('fonts/PIXY.ttf') format('truetype'),
+                 url('fonts/PIXY.ttf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: 'Pixy', sans-serif;
+            margin: 0;
+            background-color: darkgray;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        #container {
+            font-family: 'Pixy', sans-serif;
+            width: 752px;
+            height: 385px;
+            border: 4.5px solid white;
+            border-radius: 14px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            padding: 20px;
+        }
+        #container::before {
+            content: '';
+            position: absolute;
+            top: -7px;
+            left: -7px;
+            right: -7px;
+            bottom: -7px;
+            border: 10.5px solid rgb(32, 32, 32); /* Черная граница */
+            border-radius: 16px;
+            z-index: -2;
+        }
+        #container::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border: 4.5px solid whitesmoke; /* Черная граница */
+            border-radius: 14px;
+            z-index: -3;
+        }
+        .main-section {
+            width: 700px;
+            height: 87%;
+            display: flex;
+            position: relative;
+        }
+        .sub-section {
+            width: 300px;
+            margin-right: 20px;
+        }
+        .command-section {
+            margin-top: 25px;
+            display: flex;
+            align-items: center;
+        }
+        input.barter-name {
+            width: 300px;
+            text-align: left;
+        }
+        .hidden {
+            display: none;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            cursor: pointer;
+            position: relative;
+            width: 75%;
+            padding: 1.25px;
+            border-radius: 7.5px;
+            margin-bottom: 5px;
+            transition: padding-left 0.01215s, padding-top 0.125s;
+        }
+        li:hover {
+            cursor: pointer;
+            padding-left: 3px;
+            padding-top: 3px;
+            margin-bottom: 5px;
+            border-radius: 7.5px;
+        }
+        li:hover::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border: 4.07px solid rgb(32, 32, 32); /* Черная граница */
+            border-radius: 9px;
+            z-index: -2;
+        }
+        li:hover::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            border: 2.05px solid whitesmoke; /* Черная граница */
+            border-radius: 8px;
+            z-index: -1;
+        }
+        .copy-clear-buttons {
+            font-family: 'Pixy', sans-serif;
+            margin-left: 10px;
+            cursor: pointer;
+            border: 3.5px solid;
+            border-radius: 6px;
+            background-color: transparent;
+            width: 25px;
+            height: 25px;
+        }
+        .copy-clear-buttons::before {
+            content: '';
+            position: absolute;
+            z-index: 2;
+            width: 21.15px;
+            height: 21.35px;
+            border: 1.55px solid white;
+            border-radius: 6px;
+            margin-top: -4.15px;
+            margin-left: -8.55px;
+            right: -1.5;
+            bottom: -1.5;
+        }
+        .button-o::before {
+            content: '';
+            position: absolute;
+            z-index: 2;
+            width: 25.15px;
+            height: 26.25px;
+            border: 1.55px solid white;
+            border-radius: 4px;
+            margin-top: -7px;
+            margin-left: -9.80px;
+            right: -1.5;
+            bottom: -1.5;
+        }
+        .active {
+            border: 1.25px solid white;
+            background-color: gray;
+            padding-left: 2.5px;
+            border-radius: 7.5px;
+            color: white;
+        }
+        .button-o {
+            font-family: 'Pixy';
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: transparent;
+            border: 3.5px solid;
+            border-radius: 4px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+        ul, p {
+            user-select: none;
+        }
+        select, input, #exp-toggle, #trait-toggle {
+            color: darkgray;
+            font-family: 'Pixy', sans-serif;
+            background-color: rgb(32, 32, 32);
+        }
+        select {
+            border-radius: 6px;
+        }
+        option {
+            opacity: 0.3 !important;
+            filter: brightness(10.2) !important;
+            background-color: #111;
+            border-radius: 8px;
+            padding: 5px;
+        }
+        input, #exp-toggle, #trait-toggle {
+            border-radius: 8px;
+            text-align: center;
+        }
+        #exp-toggle, #trait-toggle {
+            cursor: pointer;
+        }
+        .odv1, .tov2, .hsv3 {
+            opacity: 0.75;
+        }
+        .odv, .odv1 {
+            color: red;
+        }
+        .tov, .tov2 {
+            color: goldenrod;
+        }
+        .hsv, .hsv3 {
+            color: green;
+        }
+        .number-size {
+            width: 75px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div class="main-section">
+            <div id="div1" class="sub-section">
+                <button id="button-o" class="button-o">N</button>
+                <ul>
+                    <li data-target="restore-hp">Восстановить HP</li>
+                    <li data-target="restore-stamina">Восстановить Стамину</li>
+                    <li data-target="restore-food">Восстановить Еду</li>
+                    <li data-target="restore-mood">Восстановить Настроение</li>
+                    <li data-target="heal-wound">Исцелить раны</li>
+                    <li data-target="pregnancy-stage">Стадия беременности</li>
+                    <li data-target="add-barter-points">Добавить P (Пойнты бартера)</li>
+                    <li data-target="add-character-trait-points">Добавить очки черт характера</li>
+                    <li data-target="set-exp-level">Установить Exp (Уровень)</li>
+                    <li data-target="add-remove-traits">Добавить/удалить черты</li>
+                    <li data-target="gain-item">Получить предмет</li>
+                </ul>
+            </div>
+            <div id="div2" class="sub-section">
+                <div id="restore-hp" class="hidden">
+                    <p>
+                        <label for="hp-amount">Введите количество HP:</label>
+                        <input type="number" min="0" value="1" class="number-size" id="hp-amount">
+                    </p>
+                </div>
+                <div id="restore-stamina" class="hidden">
+                    <p>
+                        <label for="stamina-amount">Введите количество Стамины:</label>
+                        <input type="number" min="0" value="1" class="number-size" id="stamina-amount">
+                    </p>
+                </div>
+                <div id="restore-food" class="hidden">
+                    <p>
+                        <label for="food-amount">Введите количество Еды:</label>
+                        <input type="number" min="1" value="1" class="number-size" id="food-amount">
+                    </p>
+                </div>
+                <div id="restore-mood" class="hidden">
+                    <p>
+                        <label for="mood-amount">Введите количество Настроения:</label>
+                        <input type="number" min="1" value="1" class="number-size" id="mood-amount">
+                    </p>
+                </div>
+                <div id="heal-wound" class="hidden">
+                    <p>
+                        <label for="heal-wound">Исцелить раны:</label>
+                        <input type="button" class="number-size" value="Исцелить">
+                    </p>
+                </div>
+                <div id="pregnancy-stage" class="hidden">
+                    <p>
+                        <label for="preg-level">Стадия беременности:</label>
+                        <input type="number" value="0" class="number-size" id="preg-level" min="0" max="5">
+                    </p>
+                </div>
+                <div id="add-barter-points" class="hidden">
+                    <p>
+                        <label for="barter-points">Введите количество Пойнтов Бартера:</label>
+                        <input type="number" min="1" value="1" class="number-size" id="barter-points">
+                    </p>
+                </div>
+                <div id="add-character-trait-points" class="hidden">
+                    <p>
+                        <label for="trait-points">Введите количество очков черт характера:</label>
+                        <input type="number" min="1" value="1" class="number-size" id="trait-points">
+                    </p>
+                </div>
+                <div id="set-exp-level" class="hidden">
+                    <p>
+                        <label for="exp-level">Введите уровень Exp:</label>
+                        <input type="number" min="1" value="1" class="number-size" id="exp-level">
+                        <button id="exp-toggle">true</button>
+                    </p>
+                </div>
+                <div id="add-remove-traits" class="hidden">
+                    <p>
+                        <p>
+                            <label for="trait-action">Действие:</label>
+                            <button id="trait-toggle">Добавить</button>
+                        </p>
+                        <p>
+                            <label for="traits">Выберите черту:</label>
+                            <select id="traits">
+                                <option value="115">Нимфоманка (115)</option>
+                                <option value="116">Жесткий (116)</option>
+                                <option value="117">Робкая (117)</option>
+                                <option value="131">Проститутка (131)</option>
+                                <option value="129">Эксгибиционист (129)</option>
+                                <option value="125">Жажда крови (125)</option>
+                                <option value="136">Алхимия (136)</option>
+                                <option value="135">Эксперт по оружию (135)</option>
+                                <option value="130">Обучение охотников (130)</option>
+                                <option value="134">Знание маны (134)</option>
+                                <option value="137">Улучшить бросок (137)</option>
+                                <option value="132">Всеядность (132)</option>
+                                <option value="138">Суккуб (138)</option>
+                                <option value="133">Пожиратель спермы (133)</option>
+                                <option value="127">Каннибал (127)</option>
+                                <option value="140">Автостопщик (140)</option>
+                                <option value="126">Мазохист (126)</option>
+                                <option value="128">Кровавое месиво (128)</option>
+                                <option value="139">Вавилонская шлюха (139)</option>
+                            </select>
+                        </p>
+                    </p>
+                </div>
+                <div id="gain-item" class="hidden">
+                    <p>
+                        <label for="item-id">Выберите предмет:</label>
+                        <select id="item-id">
+                        <optgroup class="odv" label="Предметы:">
+                        <optgroup class="odv1" label="- Сырая еда:">
+                            <option value="1">Яблоко</option>
+                            <option value="4">Гриб</option>
+                            <option value="6">Виноград</option>
+                            <option value="7">Оранжевый</option>
+                            <option value="9">Лук</option>
+                            <option value="10">Перец</option>
+                            <option value="11">Голубая ягода</option>
+                            <option value="12">Сырая рыба</option>
+                            <option value="13">Морковь</option>
+                            <option value="15">Помидор</option>
+                            <option value="16">Вишня</option>
+                            <option value="17">Молоко</option>
+                            <option value="18">Картофель</option>
+                            <option value="46">Сырое мясо</option>
+                            <option value="140">Золотое молоко</option>
+                        </optgroup>
+                        
+                        <optgroup class="odv1" label="- Приготовленная/непортящаяся еда:">
+                            <option value="2">Хлеб</option>
+                            <option value="3">Сыр</option>
+                            <option value="5">Колбаса</option>
+                            <option value="8">Орехи</option>
+                            <option value="19">Копченое мясо</option>
+                            <option value="20">Сухой корм</option>
+                            <option value="33">Фруктовое вино</option>
+                            <option value="42">Мясной суп</option>
+                            <option value="47">Овощной суп</option>
+                            <option value="49">Хороший суп</option>
+                            <option value="56">Пиво</option>
+                            <option value="57">Бутылочное пиво</option>
+                        </optgroup>
+                        
+                        <optgroup class="odv1" label="- Животные:">
+                            <option value="14">Крыса</option>
+                            <option value="48">Насекомое</option>
+                        </optgroup>
+                        
+                        <optgroup class="odv1" label="- Сперма:">
+                            <option value="34">Неизвестная сперма</option>
+                            <option value="35">Человеческое семя</option>
+                            <option value="36">Семя орков</option>
+                            <option value="37">Мерзость Семени</option>
+                            <option value="38">Семя рыбьего рода</option>
+                            <option value="39">Семя троллей</option>
+                        </optgroup>
+                        
+                        <optgroup class="odv1" label="- Отходы:">
+                            <option value="40">Какашки</option>
+                            <option value="41">Рвота</option>
+                            <option value="58">Бутылочная моча*</option>
+                        </optgroup>
+                        
+                        <optgroup class="odv1" label="- Нежелательное мясо:">
+                            <option value="43">Плоть мутанта</option>
+                            <option value="45">Плоть гуманоида</option>
+                            <option value="134">Мозг гуманоида</option>
+                            <option value="136">Человеческая плоть</option>
+                            <option value="137">Суп из человеческого мяса</option>
+                            <option value="138">Хороший человеческий суп</option>
+                            <option value="139">Копченое человеческое мясо</option>
+                            <option value="141">Таинственный мясной суп</option>
+                            <option value="142">Загадочный хороший суп</option>
+                            <option value="143">Копченое таинственное мясо (человеческое)</option>
+                        </optgroup>
+                        
+                        <optgroup class="odv1" label="- Приготовленные препараты:">
+                            <option value="21">Красное зелье</option>
+                            <option value="22">Синее зелье</option>
+                            <option value="23">Противозачаточные таблетки</option>
+                            <option value="24">Радостная вода</option>
+                            <option value="25">Ведьмин сок</option>
+                        </optgroup>
+                        
+                        <optgroup class="odv1" label="- Ингредиенты готовые к употреблению:">
+                            <option value="26">Корень дракона</option>
+                            <option value="27">Трава белого дракона</option>
+                            <option value="28">Цветок Тунг</option>
+                            <option value="29">Цветок-паразит</option>
+                            <option value="30">Репеллентная трава</option>
+                            <option value="31">Средство от насекомых</option>
+                            <option value="39">Семя троллей</option>
+                            <option value="44">Мутировавший гриб</option>
+                        </optgroup>
+                        
+                        <optgroup class="odv1" label="- Деньги:">
+                            <option value="50">Маленькая медная монета</option>
+                            <option value="51">Большая медная монета</option>
+                            <option value="52">Золотая монета</option>
+                        </optgroup>
+                        
+                        <optgroup class="odv1" label="- Дети:">
+                            <option value="68">Орк-ребёнок</option>
+                            <option value="69">Гоблин-ребёнок</option>
+                            <option value="70">Рыбоподобный малыш</option>
+                            <option value="71">Мерзость Младенца</option>
+                            <option value="72">Человеческий детеныш</option>
+                            <option value="73">Детский конкурс</option>
+                            <option value="74">Малыш Тролль*</option>
+                            <option value="75">Ребенок-тролль*</option>
+                            <option value="76">Ребенок орка</option>
+                            <option value="77">Огр-ребенок</option>
+                        </optgroup>
+                        
+                        <optgroup class="odv1" label="- Разное:">
+                            <option value="53">Минерал</option>
+                            <option value="54">Рок</option>
+                            <option value="135">Святая вода</option>
+                        </optgroup>
+                        
+                        <optgroup class="odv1" label="- Документы:">
+                            <option value="104">Удостоверение личности</option>
+                            <option value="105">Поддельное удостоверение личности</option>
+                            <option value="113">Временная виза на склон</option>
+                        </optgroup>
+                        
+                        <optgroup class="odv1" label="- Ключи от гостиниц:">
+                            <option value="106">Ключ от комнаты Buring Keg (Noer)</option>
+                            <option value="114">Ключ от комнаты Бэйна (Пиратский Бэйн)</option>
+                            <option value="116">Ключ от комнаты Doom Inn (Doom Fortress)</option>
+                        </optgroup>
+                        
+                        <optgroup class="odv1" label="- Бомбы:">
+                            <option value="181">Осколочная бомба с таймером</option>
+                            <option value="182">Осколочная бомба</option>
+                            <option value="183">Осколочная мина</option>
+                        </optgroup>
+                        
+                        <optgroup class="odv1" label="- Дымовые бомбы:">
+                            <option value="184">Бомба с часовым механизмом</option>
+                            <option value="185">Шоковая бомба</option>
+                            <option value="186">Шоковая мина</option>
+                        </optgroup>
+                        </optgroup>
+                        <optgroup class="tov" label="Оружия:">
+                        <optgroup class="tov2" label="- Универсальные предметы (осн. рука):">
+                            <option value="1">Короткий меч</option>
+                            <option value="2">Деревянная дубинка</option>
+                            <option value="3">Деревянное копье</option>
+                            <option value="5">Сдерживающее устройство</option>
+                            <option value="10">Серп</option>
+                            <option value="11">Кирка</option>
+                            <option value="12">Вилы</option>
+                        </optgroup>
+                        
+                        <optgroup class="tov2" label="- Эксперт по оружию:">
+                            <option value="4">Длинный лук</option>
+                            <option value="6">Алебарда</option>
+                            <option value="7">Кнут</option>
+                            <option value="9">Металлическое копье</option>
+                            <option value="15">Сабля</option>
+                        </optgroup>
+                        
+                        <optgroup class="tov2" label="- Магические посохи:">
+                            <option value="8">Грязный посох</option>
+                            <option value="13">Огненный жезл</option>
+                            <option value="14">Водный посох</option>
+                        </optgroup>
+                        
+                        <optgroup class="tov2" label="- Ограничения:">
+                            <option value="20">Металлическая сбруя</option>
+                            <option value="21">Цельнометаллический доспех</option>
+                        </optgroup>
+                        </optgroup>             
+                        <optgroup class="hsv" label="Одежда:">
+                        <optgroup class="hsv3" label="- Универсальные предметы (не осн. рука):">
+                            <option value="37">Кинжал</option>
+                            <option value="39">Деревянный щит</option>
+                            <option value="40">Фонарь</option>
+                            <option value="41">Костяной щит</option>
+                        </optgroup>
+
+                        <optgroup class="hsv3" label="- Эксперт по оружию:">
+                            <option value="38">Метательные ножи</option>
+                            <option value="43">Металлический щит</option>
+                        </optgroup>
+
+                        <optgroup class="hsv3" label="- Магические предметы:">
+                            <option value="42">Тотем мерзости</option>
+                            <option value="44">Книга заклинаний огня</option>
+                            <option value="45">Книга заклинаний воды</option>
+                        </optgroup>
+                        
+                        <optgroup class="hsv3" label="- Гражданская одежда:">
+                            <option value="2">Красный плащ</option>
+                            <option value="7">Гражданский Топ</option>
+                            <option value="15">Гражданские штаны</option>
+                            <option value="18">Кожаная сумка</option>
+                            <option value="33">Очки</option>
+                        </optgroup>
+                        
+                        <optgroup class="hsv3" label="- Одежда нищего:">
+                            <option value="3">Грязная шаль</option>
+                            <option value="8">Грязные тряпки</option>
+                            <option value="14">Грязное нижнее белье</option>
+                            <option value="19">Рваный фартук</option>
+                        </optgroup>
+                        
+                        <optgroup class="hsv3" label="- Одежда проститутки:">
+                            <option value="9">Золотая сбруя</option>
+                            <option value="13">Золотые штаны</option>
+                            <option value="32">Золотой головной убор</option>
+                        </optgroup>
+                        
+                        <optgroup class="hsv3" label="- Ошейники:">
+                            <option value="21">Металлический ошейник</option>
+                            <option value="22">Цепной ошейник</option>
+                        </optgroup>
+                        
+                        <optgroup class="hsv3" label="- Прически:">
+                            <option value="28">Двойная оплетка</option>
+                            <option value="29">Конский хвост</option>
+                        </optgroup>
+                        
+                        <optgroup class="hsv3" label="- Броня:">
+                            <option value="11">Легкая железная броня*</option>
+                            <option value="34">Солнцезащитные очки (предмет разработки)</option>
+                        </optgroup>
+                        </optgroup>
+                        </select>
+                    </p>
+                    <p>
+                        <label for="item-amount">Введите количество:</label>
+                        <input type="number" min="0" value="1" class="number-size" id="item-amount">
+                    </p>
+                    <p>
+                        <label for="item-type">Что это:</label>
+                        <select id="item-type">
+                            <option class="odv" value="item">Предмет</option>
+                            <option class="tov" value="weapon">Оружие</option>
+                            <option class="hsv" value="armor">Броня и/или Не осн. рука</option>
+                        </select>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="command-section">
+            <input type="text" class="barter-name" placeholder="Название команды">
+            <button id="copy" class="copy-clear-buttons">C</button>
+            <button id="clear" class="copy-clear-buttons">X</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const items = document.querySelectorAll("#div1 ul li");
+            const barterName = document.querySelector(".barter-name");
+            const buttonO = document.getElementById("button-o");
+            const expToggle = document.getElementById("exp-toggle");
+            const traitToggle = document.getElementById("trait-toggle");
+            let oFlag = false;
+
+            items.forEach(item => {
+                item.addEventListener("click", function() {
+                    items.forEach(li => li.classList.remove("active"));
+                    this.classList.add("active");
+                });
+            });
+
+            function updateBarterName() {
+                const activeDiv = document.querySelector("#div2 > div:not(.hidden)");
+                const numberSizeInput = activeDiv ? activeDiv.querySelector(".number-size") : null;
+                const value = numberSizeInput ? numberSizeInput.value : '';
+                const itemIdInput = document.getElementById("item-id") ? document.getElementById("item-id").value : '';
+                const itemType = document.getElementById("item-type") ? document.getElementById("item-type").value : 'item';
+                const itemAmountInput = document.getElementById("item-amount") ? document.getElementById("item-amount").value : '';
+                let command = '';
+
+                if (activeDiv) {
+                    switch (activeDiv.id) {
+                        case "restore-hp":
+                            command = `$game_player.actor.health+=${value}`;
+                            break;
+                        case "restore-stamina":
+                            command = `$game_player.actor.sta+=${value}`;
+                            break;
+                        case "restore-food":
+                            command = `$game_player.actor.sat+=${value}`;
+                            break;
+                        case "restore-mood":
+                            command = `$game_player.actor.mood+=${value}`;
+                            break;
+                        case "heal-wound":
+                            command = `$game_player.actor.heal_wound`;
+                            break;
+                        case "pregnancy-stage":
+                            command = `$game_player.actor.preg_level=${value}`;
+                            break;
+                        case "add-barter-points":
+                            command = `$game_party.gain_gold(${value})`;
+                            break;
+                        case "add-character-trait-points":
+                            command = `$game_player.actor.trait_point+=${value}`;
+                            break;
+                        case "set-exp-level":
+                            const expToggleValue = expToggle.textContent === "true";
+                            command = `$game_player.actor.change_exp(${value}, ${expToggleValue})`;
+                            break;
+                        case "add-remove-traits":
+                            const traitAction = traitToggle.textContent === "Добавить" ? "add_state" : "remove_state";
+                            command = `$game_player.actor.${traitAction}(${document.getElementById("traits").value})`;
+                            break;
+                        case "gain-item":
+                            switch (itemType) {
+                                case "item":
+                                    command = `$game_party.gain_item($data_items[${itemIdInput}], ${itemAmountInput})`;
+                                    break;
+                                case "weapon":
+                                    command = `$game_party.gain_item($data_weapons[${itemIdInput}], ${itemAmountInput})`;
+                                    break;
+                                case "armor":
+                                    command = `$game_party.gain_item($data_armors[${itemIdInput}], ${itemAmountInput})`;
+                                    break;
+                            }
+                        break;
+                    }
+                }
+                
+                if (oFlag) {
+                    command += ' >z';
+                }
+                
+                barterName.value = command;
+            }
+
+            items.forEach(item => {
+                item.addEventListener("click", function() {
+                    document.querySelectorAll("#div2 > div").forEach(div => {
+                        div.classList.add("hidden");
+                    });
+                    const targetId = this.getAttribute("data-target");
+                    document.getElementById(targetId).classList.remove("hidden");
+                    updateBarterName();
+                });
+            });
+
+            document.querySelectorAll(".number-size").forEach(input => {
+                input.addEventListener("input", updateBarterName);
+            });
+
+            document.getElementById("item-id").addEventListener("change", updateBarterName);
+            document.getElementById("traits").addEventListener("change", updateBarterName);
+            document.getElementById("item-amount").addEventListener("input", updateBarterName);
+            document.getElementById("item-type").addEventListener("change", updateBarterName);
+
+            document.getElementById("copy").addEventListener("click", function() {
+                navigator.clipboard.writeText(barterName.value);
+                barterName.select();
+                barterName.setSelectionRange(0, 99999);
+            });
+
+            document.getElementById("clear").addEventListener("click", function() {
+                barterName.value = '';
+            });
+
+            buttonO.addEventListener("click", function() {
+                oFlag = !oFlag;
+                buttonO.textContent = oFlag ? 'O' : 'N';
+                updateBarterName();
+            });
+
+            expToggle.addEventListener("click", function() {
+                expToggle.textContent = expToggle.textContent === "true" ? "false" : "true";
+                updateBarterName();
+            });
+
+            traitToggle.addEventListener("click", function() {
+                traitToggle.textContent = traitToggle.textContent === "Добавить" ? "Удалить" : "Добавить";
+                updateBarterName();
+            });
+        });
+    </script>
+</body>
+</html>
